@@ -247,6 +247,46 @@ export default function Home() {
     setMessage("Account created. If email confirmation is enabled in Supabase, confirm your email before signing in.");
   }
 
+  async function completeProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!user?.email) return;
+    const form = new FormData(event.currentTarget);
+    const fullName = String(form.get("name")).trim();
+    const role = String(form.get("role")) as Role;
+    const joinCode = String(form.get("joinCode")).trim().toUpperCase();
+
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: user.id,
+      email: user.email,
+      full_name: fullName,
+      role
+    });
+
+    if (profileError) {
+      setMessage(profileError.message);
+      return;
+    }
+
+    if (role === "student") {
+      const { data } = await supabase.from("classes").select("*").eq("join_code", joinCode).maybeSingle();
+      if (!data) {
+        setMessage("Profile created, but the class join code was not found. Ask your instructor for the correct code.");
+        await loadData(user.id);
+        return;
+      }
+      const { error: membershipError } = await supabase.from("memberships").insert({
+        class_id: (data as ClassRow).id,
+        student_id: user.id
+      });
+      if (membershipError) {
+        setMessage(membershipError.message);
+        return;
+      }
+    }
+
+    await loadData(user.id);
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
   }
@@ -344,9 +384,9 @@ export default function Home() {
     else await loadData(profile.id);
   }
 
-  if (loading || (user && !profile)) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, profile, signOut);
+  if (loading) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, profile, signOut);
   if (!user) return renderFrame(renderLogin(signIn, register, message), profile, signOut);
-  if (!profile) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, null, signOut);
+  if (!profile) return renderFrame(renderCompleteProfile(user.email ?? "", completeProfile, message), null, signOut);
   if (profile.role === "student") return renderFrame(renderStudent(profile), profile, signOut);
   return renderFrame(renderInstructor(), profile, signOut);
 
@@ -662,6 +702,32 @@ function renderLogin(
         </div>
       </main>
     </>
+  );
+}
+
+function renderCompleteProfile(
+  email: string,
+  completeProfile: (event: FormEvent<HTMLFormElement>) => void,
+  message: string
+) {
+  return (
+    <main className="main">
+      <section className="panel stack">
+        <h2>Complete Your Account</h2>
+        <p className="muted">Your login exists for {email}, but the classroom profile still needs to be created.</p>
+        {message && <div className="alert">{message}</div>}
+        <form className="stack" onSubmit={completeProfile}>
+          <div className="grid">
+            <label className="field"><span>Name</span><input className="input" name="name" required /></label>
+            <label className="field"><span>Role</span><select name="role"><option value="student">Student</option><option value="instructor">Instructor</option></select></label>
+          </div>
+          <label className="field"><span>Class join code</span><input className="input" name="joinCode" placeholder="Students enter teacher code" /></label>
+          <div className="btn-row">
+            <button className="btn" type="submit">Continue</button>
+          </div>
+        </form>
+      </section>
+    </main>
   );
 }
 
