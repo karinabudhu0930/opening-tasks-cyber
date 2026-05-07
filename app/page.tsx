@@ -221,7 +221,9 @@ export default function Home() {
       role
     };
 
-    const { error: profileError } = await supabase.from("profiles").insert(profilePayload);
+    const { error: profileError } = await supabase.from("profiles").upsert(profilePayload, {
+      onConflict: "id"
+    });
     if (profileError) {
       setMessage(profileError.message);
       return;
