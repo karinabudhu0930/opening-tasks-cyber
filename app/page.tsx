@@ -255,11 +255,13 @@ export default function Home() {
     const role = String(form.get("role")) as Role;
     const joinCode = String(form.get("joinCode")).trim().toUpperCase();
 
-    const { error: profileError } = await supabase.from("profiles").insert({
+    const { error: profileError } = await supabase.from("profiles").upsert({
       id: user.id,
       email: user.email,
       full_name: fullName,
       role
+    }, {
+      onConflict: "id"
     });
 
     if (profileError) {
