@@ -1,8 +1,9 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
-import { supabase } from "@/lib/supabaseClient";
+import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
 
 type Role = "student" | "instructor";
 
@@ -80,6 +81,12 @@ export default function Home() {
   const [builderQuestions, setBuilderQuestions] = useState<BuilderQuestion[]>([emptyQuestion()]);
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setMessage("Missing Supabase environment variables. Add them in Vercel Project Settings, then redeploy.");
+      setLoading(false);
+      return;
+    }
+
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
       setLoading(false);
@@ -605,7 +612,7 @@ export default function Home() {
   }
 }
 
-function renderFrame(children: React.ReactNode, profile: Profile | null, signOut: () => void) {
+function renderFrame(children: ReactNode, profile: Profile | null, signOut: () => void) {
   return (
     <>
       <header className="topbar">
