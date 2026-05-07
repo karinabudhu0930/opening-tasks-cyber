@@ -346,7 +346,8 @@ export default function Home() {
 
   if (loading || (user && !profile)) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, profile, signOut);
   if (!user) return renderFrame(renderLogin(signIn, register, message), profile, signOut);
-  if (profile.role === "student") return renderFrame(renderStudent(), profile, signOut);
+  if (!profile) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, null, signOut);
+  if (profile.role === "student") return renderFrame(renderStudent(profile), profile, signOut);
   return renderFrame(renderInstructor(), profile, signOut);
 
   function renderInstructor() {
@@ -529,9 +530,9 @@ export default function Home() {
     );
   }
 
-  function renderStudent() {
-    const activeTask = tasks.find((task) => taskStatus(task) === "open" && !getSubmission(task.id, profile.id));
-    const completed = tasks.filter((task) => getSubmission(task.id, profile.id));
+  function renderStudent(activeProfile: Profile) {
+    const activeTask = tasks.find((task) => taskStatus(task) === "open" && !getSubmission(task.id, activeProfile.id));
+    const completed = tasks.filter((task) => getSubmission(task.id, activeProfile.id));
     return (
       <main className="main stack">
         {message && <div className="alert">{message}</div>}
@@ -556,7 +557,7 @@ export default function Home() {
         <section className="panel stack">
           <h3>Your Submissions</h3>
           {completed.length ? completed.map((task) => {
-            const submission = getSubmission(task.id, profile.id);
+            const submission = getSubmission(task.id, activeProfile.id);
             return <article className="question" key={task.id}><div className="row"><strong>{task.title}</strong><span>{submission ? autoScore(task, submission) : 0}/{maxPoints(task)}</span></div><div className="muted">Submitted {submission ? formatDate(submission.submitted_at) : ""}</div></article>;
           }) : <div className="empty">No submissions yet.</div>}
         </section>
