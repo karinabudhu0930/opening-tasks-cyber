@@ -76,6 +76,28 @@ button:disabled {
   width: 38px;
 }
 
+.mark-button {
+  flex: 0 0 auto;
+  padding: 0;
+}
+
+.mark-button:hover,
+.mark-button:focus-visible {
+  box-shadow:
+    0 0 0 3px rgba(67, 185, 255, 0.2),
+    0 0 28px rgba(67, 185, 255, 0.44);
+  outline: none;
+}
+
+.top-actions {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
 .brand h1 {
   font-size: 1.05rem;
   line-height: 1.1;

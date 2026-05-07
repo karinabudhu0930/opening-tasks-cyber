@@ -388,11 +388,17 @@ export default function Home() {
     else await loadData(profile.id);
   }
 
-  if (loading) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, profile, signOut);
-  if (!user) return renderFrame(renderLogin(signIn, register, message), profile, signOut);
-  if (!profile) return renderFrame(renderCompleteProfile(user.email ?? "", completeProfile, message), null, signOut);
-  if (profile.role === "student") return renderFrame(renderStudent(profile), profile, signOut);
-  return renderFrame(renderInstructor(), profile, signOut);
+  const goHome = () => {
+    setView("tasks");
+    setSelectedReportTaskId("all");
+    setMessage("");
+  };
+
+  if (loading) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, profile, signOut, goHome);
+  if (!user) return renderFrame(renderLogin(signIn, register, message), profile, signOut, goHome);
+  if (!profile) return renderFrame(renderCompleteProfile(user.email ?? "", completeProfile, message), null, signOut, goHome);
+  if (profile.role === "student") return renderFrame(renderStudent(profile), profile, signOut, goHome);
+  return renderFrame(renderInstructor(), profile, signOut, goHome);
 
   function renderInstructor() {
     if (!selectedClass) {
@@ -657,15 +663,15 @@ export default function Home() {
   }
 }
 
-function renderFrame(children: ReactNode, profile: Profile | null, signOut: () => void) {
+function renderFrame(children: ReactNode, profile: Profile | null, signOut: () => void, goHome: () => void) {
   return (
     <>
       <header className="topbar">
         <div className="brand">
-          <div className="mark">O</div>
+          <button className="mark mark-button" type="button" onClick={goHome} title="Home">O</button>
           <div><h1>Opening Tasks - Cyber Security</h1><span>Ms. Budhu</span></div>
         </div>
-        {profile && <div className="btn-row"><span className="muted">{profile.full_name} · {profile.role}</span><button className="btn secondary" onClick={signOut}>Sign out</button></div>}
+        {profile && <div className="top-actions"><span className="muted">{profile.full_name} · {profile.role}</span><button className="btn secondary" onClick={signOut}>Sign out</button></div>}
       </header>
       {children}
     </>
