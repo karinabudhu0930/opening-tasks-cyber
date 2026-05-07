@@ -51,10 +51,20 @@ alter table public.memberships enable row level security;
 alter table public.opening_tasks enable row level security;
 alter table public.submissions enable row level security;
 
+create or replace function public.current_profile_role()
+returns text
+language sql
+security definer
+set search_path = public
+as $$
+  select role from public.profiles where id = auth.uid()
+$$;
+
+drop policy if exists "profiles_select_own_or_instructor" on public.profiles;
 create policy "profiles_select_own_or_instructor" on public.profiles
 for select using (
   auth.uid() = id
-  or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'instructor')
+  or public.current_profile_role() = 'instructor'
 );
 
 create policy "profiles_insert_own" on public.profiles
