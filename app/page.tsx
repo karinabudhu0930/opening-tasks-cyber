@@ -671,7 +671,10 @@ function renderFrame(children: ReactNode, profile: Profile | null, signOut: () =
           <button className="mark mark-button" type="button" onClick={goHome} title="Home">O</button>
           <div><h1>Opening Tasks - Cyber Security</h1><span>Ms. Budhu</span></div>
         </div>
-        {profile && <div className="top-actions"><span className="muted">{profile.full_name} · {profile.role}</span><button className="btn secondary" onClick={signOut}>Sign out</button></div>}
+        <div className="top-actions">
+          {profile && <span className="muted">{profile.full_name} · {profile.role}</span>}
+          <button className="btn secondary sign-out-btn" onClick={signOut}>Sign out</button>
+        </div>
       </header>
       {children}
     </>

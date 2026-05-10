@@ -91,11 +91,20 @@ button:disabled {
 
 .top-actions {
   align-items: center;
+  background: rgba(4, 10, 25, 0.66);
+  border: 1px solid rgba(117, 180, 255, 0.22);
+  border-radius: 8px;
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   justify-content: flex-end;
   margin-left: auto;
+  padding: 6px;
+}
+
+.sign-out-btn {
+  min-height: 36px;
+  padding: 8px 12px;
 }
 
 .brand h1 {
