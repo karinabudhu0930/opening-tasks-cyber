@@ -357,12 +357,12 @@ export default function Home() {
     const form = new FormData(event.currentTarget);
     const title = String(form.get("title")).trim();
     const closesAtValue = String(form.get("closesAt"));
-    const closesAt = new Date(closesAtValue);
+    const closesAt = parseLocalDateTime(closesAtValue);
     if (!title) {
       setMessage("Please enter a task title.");
       return;
     }
-    if (!closesAtValue || Number.isNaN(closesAt.getTime())) {
+    if (!closesAtValue || !closesAt) {
       setMessage("Please choose a valid close time before publishing.");
       return;
     }
@@ -499,7 +499,7 @@ export default function Home() {
           <form className="stack" onSubmit={createTask}>
             <div className="grid">
               <label className="field"><span>Task title</span><input className="input" name="title" required /></label>
-              <label className="field"><span>Close time</span><input className="input" name="closesAt" type="datetime-local" required /></label>
+              <label className="field"><span>Close time</span><input className="input" name="closesAt" type="datetime-local" defaultValue={defaultCloseTimeLocal(15)} min={defaultCloseTimeLocal(1)} required /></label>
             </div>
             <label className="field"><span>Instructions</span><textarea name="instructions" /></label>
             {builderQuestions.map((question, index) => (
@@ -842,6 +842,25 @@ function autoScore(task: Task, submission: Submission) {
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
+}
+
+function defaultCloseTimeLocal(minutesFromNow: number) {
+  const value = new Date(Date.now() + minutesFromNow * 60 * 1000);
+  value.setSeconds(0, 0);
+  return toDateTimeLocalValue(value);
+}
+
+function toDateTimeLocalValue(value: Date) {
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}T${pad(value.getHours())}:${pad(value.getMinutes())}`;
+}
+
+function parseLocalDateTime(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute] = match;
+  const parsed = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
 function makeJoinCode(name: string) {
