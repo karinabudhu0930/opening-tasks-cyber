@@ -300,15 +300,21 @@ export default function Home() {
     if (!profile) return;
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name")).trim();
+    if (!name) {
+      setMessage("Please enter a class name.");
+      return;
+    }
     const joinCode = makeJoinCode(name);
-    const { error } = await supabase.from("classes").insert({
+    const { data, error } = await supabase.from("classes").insert({
       instructor_id: profile.id,
       name,
       join_code: joinCode
-    });
+    }).select("*").single();
     if (error) setMessage(error.message);
     else {
       event.currentTarget.reset();
+      setSelectedClassId((data as ClassRow).id);
+      setMessage("");
       await loadData(profile.id);
     }
   }
@@ -406,6 +412,7 @@ export default function Home() {
         <main className="main">
           <section className="panel stack">
             <h2>Create Your First Class</h2>
+            {message && <div className="alert">{message}</div>}
             <ClassForm onSubmit={createClass} />
           </section>
         </main>
