@@ -305,16 +305,26 @@ export default function Home() {
       setMessage("Please enter a class name.");
       return;
     }
-    const joinCode = makeJoinCode(name);
-    const { data, error } = await supabase.from("classes").insert({
-      instructor_id: profile.id,
-      name,
-      join_code: joinCode
-    }).select("*").single();
+    let data: ClassRow | null = null;
+    let error: { message: string; code?: string } | null = null;
+
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const joinCode = makeJoinCode(name);
+      const result = await supabase.from("classes").insert({
+        instructor_id: profile.id,
+        name,
+        join_code: joinCode
+      }).select("*").single();
+
+      data = result.data as ClassRow | null;
+      error = result.error;
+      if (!error || error.code !== "23505") break;
+    }
+
     if (error) setMessage(error.message);
-    else {
+    else if (data) {
       event.currentTarget.reset();
-      setSelectedClassId((data as ClassRow).id);
+      setSelectedClassId(data.id);
       setMessage("");
       await loadData(profile.id);
     }
@@ -815,7 +825,8 @@ function formatDate(value: string) {
 
 function makeJoinCode(name: string) {
   const base = name.replace(/[^a-z0-9]/gi, "").slice(0, 4).toUpperCase() || "CYBR";
-  return `${base}${Math.floor(10 + Math.random() * 90)}`;
+  const suffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+  return `${base}${suffix}`;
 }
 
 function slugify(value: string) {
