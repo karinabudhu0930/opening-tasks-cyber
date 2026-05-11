@@ -31,6 +31,7 @@ create table if not exists public.opening_tasks (
   instructions text,
   opens_at timestamptz not null default now(),
   closes_at timestamptz not null,
+  locked boolean not null default false,
   questions jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now()
 );
@@ -102,6 +103,14 @@ for select using (
 
 create policy "tasks_insert_instructor" on public.opening_tasks
 for insert with check (
+  exists (select 1 from public.classes c where c.id = class_id and c.instructor_id = auth.uid())
+);
+
+drop policy if exists "tasks_update_instructor" on public.opening_tasks;
+create policy "tasks_update_instructor" on public.opening_tasks
+for update using (
+  exists (select 1 from public.classes c where c.id = class_id and c.instructor_id = auth.uid())
+) with check (
   exists (select 1 from public.classes c where c.id = class_id and c.instructor_id = auth.uid())
 );
 

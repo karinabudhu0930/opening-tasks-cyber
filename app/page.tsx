@@ -43,6 +43,7 @@ type Task = {
   instructions: string | null;
   opens_at: string;
   closes_at: string;
+  locked: boolean;
   questions: Question[];
 };
 
@@ -356,14 +357,15 @@ export default function Home() {
     if (!selectedClass || !profile) return;
     const form = new FormData(event.currentTarget);
     const title = String(form.get("title")).trim();
-    const closesAtValue = String(form.get("closesAt"));
-    const closesAt = parseLocalDateTime(closesAtValue);
+    const closeDate = String(form.get("closeDate"));
+    const closeTime = String(form.get("closeTime"));
+    const closesAt = parseLocalDateAndTime(closeDate, closeTime);
     if (!title) {
       setMessage("Please enter a task title.");
       return;
     }
-    if (!closesAtValue || !closesAt) {
-      setMessage("Please choose a valid close time before publishing.");
+    if (!closeDate || !closeTime || !closesAt) {
+      setMessage("Please choose a valid close date and close time before publishing.");
       return;
     }
     const questions = builderQuestions.map(({ optionsText, ...question }) => ({
@@ -387,6 +389,7 @@ export default function Home() {
       instructions: String(form.get("instructions")).trim(),
       opens_at: new Date().toISOString(),
       closes_at: closesAt.toISOString(),
+      locked: false,
       questions
     });
 
@@ -412,6 +415,16 @@ export default function Home() {
     });
     if (error) setMessage(error.message);
     else await loadData(profile.id);
+  }
+
+  async function setTaskLock(task: Task, locked: boolean) {
+    if (!profile) return;
+    const { error } = await supabase.from("opening_tasks").update({ locked }).eq("id", task.id);
+    if (error) setMessage(error.message);
+    else {
+      setMessage(locked ? "Opening task locked." : "Opening task unlocked.");
+      await loadData(profile.id);
+    }
   }
 
   async function saveGrade(event: FormEvent<HTMLFormElement>, submissionId: string, questionId: string) {
@@ -499,7 +512,8 @@ export default function Home() {
           <form className="stack" onSubmit={createTask}>
             <div className="grid">
               <label className="field"><span>Task title</span><input className="input" name="title" required /></label>
-              <label className="field"><span>Close time</span><input className="input" name="closesAt" type="datetime-local" defaultValue={defaultCloseTimeLocal(15)} min={defaultCloseTimeLocal(1)} required /></label>
+              <label className="field"><span>Close date</span><input className="input" name="closeDate" type="date" defaultValue={defaultCloseDate()} required /></label>
+              <label className="field"><span>Close time</span><input className="input" name="closeTime" type="time" defaultValue={defaultCloseTime(15)} required /></label>
             </div>
             <label className="field"><span>Instructions</span><textarea name="instructions" /></label>
             {builderQuestions.map((question, index) => (
@@ -525,7 +539,7 @@ export default function Home() {
         </section>
         <section className="panel stack">
           <h3>Current Tasks</h3>
-          {classTasks.length ? classTasks.map((task) => <TaskSummary key={task.id} task={task} students={classStudents()} submissions={submissions} />) : <div className="empty">No tasks yet.</div>}
+          {classTasks.length ? classTasks.map((task) => <TaskSummary key={task.id} task={task} students={classStudents()} submissions={submissions} onLockChange={setTaskLock} />) : <div className="empty">No tasks yet.</div>}
         </section>
       </>
     );
@@ -792,7 +806,17 @@ function ClassForm({ onSubmit }: { onSubmit: (event: FormEvent<HTMLFormElement>)
   );
 }
 
-function TaskSummary({ task, students, submissions }: { task: Task; students: Profile[]; submissions: Submission[] }) {
+function TaskSummary({
+  task,
+  students,
+  submissions,
+  onLockChange
+}: {
+  task: Task;
+  students: Profile[];
+  submissions: Submission[];
+  onLockChange: (task: Task, locked: boolean) => void;
+}) {
   const submitted = students.filter((student) => submissions.some((submission) => submission.task_id === task.id && submission.student_id === student.id)).length;
   const status = taskStatus(task);
   return (
@@ -802,6 +826,10 @@ function TaskSummary({ task, students, submissions }: { task: Task; students: Pr
         <span className={`pill ${status}`}>{statusLabel(status)}</span>
       </div>
       <div className="muted">{task.questions.length} questions · {submitted}/{students.length} submitted · {maxPoints(task)} points</div>
+      <div className="btn-row">
+        <button className="btn secondary" type="button" onClick={() => onLockChange(task, true)} disabled={task.locked}>Lock</button>
+        <button className="btn secondary" type="button" onClick={() => onLockChange(task, false)} disabled={!task.locked}>Unlock</button>
+      </div>
     </article>
   );
 }
@@ -819,12 +847,14 @@ function Table({ headers, rows }: { headers: string[]; rows: string[][] }) {
 
 function taskStatus(task: Task) {
   const now = Date.now();
+  if (task.locked) return "locked";
   if (now < new Date(task.opens_at).getTime()) return "waiting";
   if (now > new Date(task.closes_at).getTime()) return "closed";
   return "open";
 }
 
 function statusLabel(status: string) {
+  if (status === "locked") return "Locked";
   return status === "open" ? "Open" : status === "closed" ? "Closed" : "Upcoming";
 }
 
@@ -844,21 +874,32 @@ function formatDate(value: string) {
   return new Intl.DateTimeFormat([], { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(new Date(value));
 }
 
-function defaultCloseTimeLocal(minutesFromNow: number) {
+function defaultCloseDate() {
+  return toDateValue(new Date(Date.now() + 15 * 60 * 1000));
+}
+
+function defaultCloseTime(minutesFromNow: number) {
   const value = new Date(Date.now() + minutesFromNow * 60 * 1000);
   value.setSeconds(0, 0);
-  return toDateTimeLocalValue(value);
+  return toTimeValue(value);
 }
 
-function toDateTimeLocalValue(value: Date) {
+function toDateValue(value: Date) {
   const pad = (part: number) => String(part).padStart(2, "0");
-  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}T${pad(value.getHours())}:${pad(value.getMinutes())}`;
+  return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
 }
 
-function parseLocalDateTime(value: string) {
-  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/);
-  if (!match) return null;
-  const [, year, month, day, hour, minute] = match;
+function toTimeValue(value: Date) {
+  const pad = (part: number) => String(part).padStart(2, "0");
+  return `${pad(value.getHours())}:${pad(value.getMinutes())}`;
+}
+
+function parseLocalDateAndTime(dateValue: string, timeValue: string) {
+  const dateMatch = dateValue.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const timeMatch = timeValue.match(/^(\d{2}):(\d{2})$/);
+  if (!dateMatch || !timeMatch) return null;
+  const [, year, month, day] = dateMatch;
+  const [, hour, minute] = timeMatch;
   const parsed = new Date(Number(year), Number(month) - 1, Number(day), Number(hour), Number(minute));
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }

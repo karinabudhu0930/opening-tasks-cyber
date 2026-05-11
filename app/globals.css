@@ -331,6 +331,11 @@ select:focus {
   color: #ffe2a0;
 }
 
+.pill.locked {
+  background: rgba(159, 123, 255, 0.18);
+  color: #d7c8ff;
+}
+
 .metrics {
   display: grid;
   gap: 12px;
