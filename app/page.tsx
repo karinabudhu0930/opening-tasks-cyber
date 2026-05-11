@@ -132,7 +132,8 @@ export default function Home() {
       .single();
 
     if (profileError || !profileData) {
-      setMessage("Account profile was not found. Try signing out and creating the account again.");
+      setProfile(null);
+      setMessage("Your login exists, but your classroom profile still needs to be completed below.");
       setLoading(false);
       return;
     }
