@@ -78,6 +78,7 @@ export default function Home() {
   const [view, setView] = useState<"tasks" | "students" | "reports">("tasks");
   const [selectedReportTaskId, setSelectedReportTaskId] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [publishingTask, setPublishingTask] = useState(false);
   const [message, setMessage] = useState("");
   const [builderQuestions, setBuilderQuestions] = useState<BuilderQuestion[]>([emptyQuestion()]);
 
@@ -355,6 +356,7 @@ export default function Home() {
   async function createTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedClass || !profile) return;
+    setPublishingTask(true);
     const form = new FormData(event.currentTarget);
     const title = String(form.get("title")).trim();
     const closeDate = String(form.get("closeDate"));
@@ -362,24 +364,39 @@ export default function Home() {
     const closesAt = parseLocalDateAndTime(closeDate, closeTime);
     if (!title) {
       setMessage("Please enter a task title.");
+      setPublishingTask(false);
       return;
     }
     if (!closeDate || !closeTime || !closesAt) {
       setMessage("Please choose a valid close date and close time before publishing.");
+      setPublishingTask(false);
+      return;
+    }
+    if (closesAt.getTime() <= Date.now()) {
+      setMessage("Please choose a close date and time in the future.");
+      setPublishingTask(false);
       return;
     }
     const questions = builderQuestions.map(({ optionsText, ...question }) => ({
       ...question,
       prompt: question.prompt.trim(),
+      correctAnswer: question.correctAnswer.trim(),
       id: crypto.randomUUID(),
       options: question.type === "multiple" ? optionsText.split(",").map((item) => item.trim()).filter(Boolean) : []
     }));
     if (questions.some((question) => !question.prompt)) {
       setMessage("Please enter a prompt for every question.");
+      setPublishingTask(false);
       return;
     }
     if (questions.some((question) => question.type === "multiple" && (!question.correctAnswer.trim() || question.options.length < 2))) {
       setMessage("Multiple choice questions need at least two options and a correct answer.");
+      setPublishingTask(false);
+      return;
+    }
+    if (questions.some((question) => question.type === "multiple" && !question.options.includes(question.correctAnswer))) {
+      setMessage("For multiple choice, the correct answer must match one of the options exactly.");
+      setPublishingTask(false);
       return;
     }
 
@@ -400,6 +417,7 @@ export default function Home() {
       setMessage("Opening task published.");
       await loadData(profile.id);
     }
+    setPublishingTask(false);
   }
 
   async function submitTask(event: FormEvent<HTMLFormElement>, task: Task) {
@@ -509,7 +527,7 @@ export default function Home() {
         <section className="panel stack">
           <h2>Opening Tasks</h2>
           <p className="muted">Create questions, set close times, and grade short answers after students submit.</p>
-          <form className="stack" onSubmit={createTask}>
+          <form className="stack" onSubmit={createTask} noValidate>
             <div className="grid">
               <label className="field"><span>Task title</span><input className="input" name="title" required /></label>
               <label className="field"><span>Close date</span><input className="input" name="closeDate" type="date" defaultValue={defaultCloseDate()} required /></label>
@@ -533,7 +551,7 @@ export default function Home() {
             ))}
             <div className="btn-row">
               <button className="btn secondary" type="button" onClick={() => setBuilderQuestions([...builderQuestions, emptyQuestion()])}>Add question</button>
-              <button className="btn" type="submit">Publish task</button>
+              <button className="btn" type="submit" disabled={publishingTask}>{publishingTask ? "Publishing..." : "Publish task"}</button>
             </div>
           </form>
         </section>
