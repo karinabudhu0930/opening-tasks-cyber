@@ -355,18 +355,38 @@ export default function Home() {
     event.preventDefault();
     if (!selectedClass || !profile) return;
     const form = new FormData(event.currentTarget);
+    const title = String(form.get("title")).trim();
+    const closesAtValue = String(form.get("closesAt"));
+    const closesAt = new Date(closesAtValue);
+    if (!title) {
+      setMessage("Please enter a task title.");
+      return;
+    }
+    if (!closesAtValue || Number.isNaN(closesAt.getTime())) {
+      setMessage("Please choose a valid close time before publishing.");
+      return;
+    }
     const questions = builderQuestions.map(({ optionsText, ...question }) => ({
       ...question,
+      prompt: question.prompt.trim(),
       id: crypto.randomUUID(),
       options: question.type === "multiple" ? optionsText.split(",").map((item) => item.trim()).filter(Boolean) : []
     }));
+    if (questions.some((question) => !question.prompt)) {
+      setMessage("Please enter a prompt for every question.");
+      return;
+    }
+    if (questions.some((question) => question.type === "multiple" && (!question.correctAnswer.trim() || question.options.length < 2))) {
+      setMessage("Multiple choice questions need at least two options and a correct answer.");
+      return;
+    }
 
     const { error } = await supabase.from("opening_tasks").insert({
       class_id: selectedClass.id,
-      title: String(form.get("title")).trim(),
+      title,
       instructions: String(form.get("instructions")).trim(),
       opens_at: new Date().toISOString(),
-      closes_at: new Date(String(form.get("closesAt"))).toISOString(),
+      closes_at: closesAt.toISOString(),
       questions
     });
 
@@ -374,6 +394,7 @@ export default function Home() {
     else {
       event.currentTarget.reset();
       setBuilderQuestions([emptyQuestion()]);
+      setMessage("Opening task published.");
       await loadData(profile.id);
     }
   }
