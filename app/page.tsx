@@ -78,6 +78,7 @@ export default function Home() {
   const [view, setView] = useState<"tasks" | "students" | "reports">("tasks");
   const [selectedReportTaskId, setSelectedReportTaskId] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [creatingClass, setCreatingClass] = useState(false);
   const [publishingTask, setPublishingTask] = useState(false);
   const [message, setMessage] = useState("");
   const [builderQuestions, setBuilderQuestions] = useState<BuilderQuestion[]>([emptyQuestion()]);
@@ -300,11 +301,16 @@ export default function Home() {
 
   async function createClass(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!profile) return;
+    if (!profile) {
+      setMessage("Please complete your instructor profile before creating a class.");
+      return;
+    }
+    setCreatingClass(true);
     const form = new FormData(event.currentTarget);
     const name = String(form.get("name")).trim();
     if (!name) {
       setMessage("Please enter a class name.");
+      setCreatingClass(false);
       return;
     }
     let data: ClassRow | null = null;
@@ -327,9 +333,12 @@ export default function Home() {
     else if (data) {
       event.currentTarget.reset();
       setSelectedClassId(data.id);
-      setMessage("");
+      setMessage(`Class created. Join code: ${data.join_code}`);
       await loadData(profile.id);
+    } else {
+      setMessage("The class could not be created. Please try again.");
     }
+    setCreatingClass(false);
   }
 
   async function addStudent(event: FormEvent<HTMLFormElement>) {
@@ -476,7 +485,7 @@ export default function Home() {
           <section className="panel stack">
             <h2>Create Your First Class</h2>
             {message && <div className="alert">{message}</div>}
-            <ClassForm onSubmit={createClass} />
+            <ClassForm onSubmit={createClass} creating={creatingClass} />
           </section>
         </main>
       );
@@ -500,7 +509,7 @@ export default function Home() {
           </label>
           <details className="class-tools">
             <summary>New class</summary>
-            <ClassForm onSubmit={createClass} />
+            <ClassForm onSubmit={createClass} creating={creatingClass} />
           </details>
           <nav className="tabs">
             {(["tasks", "students", "reports"] as const).map((tab) => (
@@ -815,11 +824,11 @@ function renderCompleteProfile(
   );
 }
 
-function ClassForm({ onSubmit }: { onSubmit: (event: FormEvent<HTMLFormElement>) => void }) {
+function ClassForm({ onSubmit, creating }: { onSubmit: (event: FormEvent<HTMLFormElement>) => void; creating: boolean }) {
   return (
-    <form className="stack" onSubmit={onSubmit}>
+    <form className="stack" onSubmit={onSubmit} noValidate>
       <label className="field"><span>Class name</span><input className="input" name="name" required placeholder="Period 1 Cyber Security" /></label>
-      <button className="btn" type="submit">Create class</button>
+      <button className="btn" type="submit" disabled={creating}>{creating ? "Creating..." : "Create class"}</button>
     </form>
   );
 }
