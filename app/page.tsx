@@ -349,10 +349,16 @@ export default function Home() {
 
     setDeletingClass(true);
     const deletedClassId = selectedClass.id;
-    const { error } = await supabase.from("classes").delete().eq("id", deletedClassId);
+    const { data, error } = await supabase.from("classes").delete().eq("id", deletedClassId).select("id");
     if (error) setMessage(error.message);
+    else if (!data?.length) {
+      setMessage("Class was not deleted. Run the Supabase class delete policy SQL, then try again.");
+    }
     else {
       const nextClass = classes.find((klass) => klass.id !== deletedClassId);
+      setClasses(classes.filter((klass) => klass.id !== deletedClassId));
+      setTasks(tasks.filter((task) => task.class_id !== deletedClassId));
+      setMemberships(memberships.filter((membership) => membership.class_id !== deletedClassId));
       setSelectedClassId(nextClass?.id ?? "");
       setSelectedReportTaskId("all");
       setView("tasks");
