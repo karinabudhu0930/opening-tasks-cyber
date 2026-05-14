@@ -83,6 +83,10 @@ for insert with check (auth.uid() = instructor_id);
 create policy "classes_update_instructor" on public.classes
 for update using (auth.uid() = instructor_id) with check (auth.uid() = instructor_id);
 
+drop policy if exists "classes_delete_instructor" on public.classes;
+create policy "classes_delete_instructor" on public.classes
+for delete using (auth.uid() = instructor_id);
+
 create policy "memberships_select_related" on public.memberships
 for select using (
   student_id = auth.uid()

@@ -79,6 +79,7 @@ export default function Home() {
   const [selectedReportTaskId, setSelectedReportTaskId] = useState("all");
   const [loading, setLoading] = useState(true);
   const [creatingClass, setCreatingClass] = useState(false);
+  const [deletingClass, setDeletingClass] = useState(false);
   const [publishingTask, setPublishingTask] = useState(false);
   const [message, setMessage] = useState("");
   const [builderQuestions, setBuilderQuestions] = useState<BuilderQuestion[]>([emptyQuestion()]);
@@ -341,6 +342,26 @@ export default function Home() {
     setCreatingClass(false);
   }
 
+  async function deleteSelectedClass() {
+    if (!profile || !selectedClass) return;
+    const confirmed = window.confirm(`Delete ${selectedClass.name}? This also removes its opening tasks, submissions, memberships, and reports.`);
+    if (!confirmed) return;
+
+    setDeletingClass(true);
+    const deletedClassId = selectedClass.id;
+    const { error } = await supabase.from("classes").delete().eq("id", deletedClassId);
+    if (error) setMessage(error.message);
+    else {
+      const nextClass = classes.find((klass) => klass.id !== deletedClassId);
+      setSelectedClassId(nextClass?.id ?? "");
+      setSelectedReportTaskId("all");
+      setView("tasks");
+      setMessage("Class deleted.");
+      await loadData(profile.id);
+    }
+    setDeletingClass(false);
+  }
+
   async function addStudent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedClass || !profile) return;
@@ -511,6 +532,9 @@ export default function Home() {
             <summary>New class</summary>
             <ClassForm onSubmit={createClass} creating={creatingClass} />
           </details>
+          <button className="btn danger" type="button" onClick={deleteSelectedClass} disabled={deletingClass}>
+            {deletingClass ? "Deleting..." : "Delete class"}
+          </button>
           <nav className="tabs">
             {(["tasks", "students", "reports"] as const).map((tab) => (
               <button className={`tab ${view === tab ? "active" : ""}`} key={tab} onClick={() => setView(tab)}>
