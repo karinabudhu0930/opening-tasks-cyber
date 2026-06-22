@@ -692,7 +692,13 @@ export default function Home() {
 
   function renderStudent(activeProfile: Profile) {
     const activeTask = tasks.find((task) => taskStatus(task) === "open" && !getSubmission(task.id, activeProfile.id));
-    const completed = tasks.filter((task) => getSubmission(task.id, activeProfile.id));
+    const completed = tasks
+      .filter((task) => getSubmission(task.id, activeProfile.id))
+      .sort((first, second) => {
+        const firstSubmission = getSubmission(first.id, activeProfile.id);
+        const secondSubmission = getSubmission(second.id, activeProfile.id);
+        return new Date(secondSubmission?.submitted_at ?? 0).getTime() - new Date(firstSubmission?.submitted_at ?? 0).getTime();
+      });
     return (
       <main className="main stack">
         {message && <div className="alert">{message}</div>}
@@ -704,11 +710,22 @@ export default function Home() {
             </div>
             <p>{activeTask.instructions}</p>
             {activeTask.questions.map((question, index) => (
-              <div className="question" key={question.id}>
-                <b>{index + 1}. {question.prompt}</b>
-                {question.type === "multiple" ? question.options.map((option) => (
-                  <label key={option}><input type="radio" name={question.id} value={option} required /> {option}</label>
-                )) : <textarea name={question.id} required />}
+              <div className="question student-question" key={question.id}>
+                <div className="question-prompt">
+                  <span className="question-number">Question {index + 1}</span>
+                  <strong>{question.prompt}</strong>
+                  <span className="question-points">{question.points} {question.points === 1 ? "point" : "points"}</span>
+                </div>
+                {question.type === "multiple" ? (
+                  <div className="option-list">
+                    {question.options.map((option) => (
+                      <label className="option-row" key={option}>
+                        <input type="radio" name={question.id} value={option} required />
+                        <span>{option}</span>
+                      </label>
+                    ))}
+                  </div>
+                ) : <textarea className="student-answer" name={question.id} aria-label={`Answer for question ${index + 1}`} required />}
               </div>
             ))}
             <button className="btn" type="submit">Submit opening task</button>
@@ -718,7 +735,42 @@ export default function Home() {
           <h3>Your Submissions</h3>
           {completed.length ? completed.map((task) => {
             const submission = getSubmission(task.id, activeProfile.id);
-            return <article className="question" key={task.id}><div className="row"><strong>{task.title}</strong><span>{submission ? autoScore(task, submission) : 0}/{maxPoints(task)}</span></div><div className="muted">Submitted {submission ? formatDate(submission.submitted_at) : ""}</div></article>;
+            if (!submission) return null;
+            const score = autoScore(task, submission);
+            const total = maxPoints(task);
+            const hasPendingGrades = task.questions.some((question) => (
+              question.type === "short" && !Object.prototype.hasOwnProperty.call(submission.manual_scores ?? {}, question.id)
+            ));
+            return (
+              <details className="question submission-card" key={task.id}>
+                <summary className="submission-summary">
+                  <span>
+                    <strong>{task.title}</strong>
+                    <span className="muted submission-date">Submitted {formatDate(submission.submitted_at)}</span>
+                  </span>
+                  <span className="submission-score">
+                    <strong>{score}/{total}</strong>
+                    <span>{total ? Math.round((score / total) * 100) : 0}%</span>
+                  </span>
+                </summary>
+                <div className="submission-details stack">
+                  {hasPendingGrades && <div className="grading-note">Short-answer grading is still pending. Your total may change.</div>}
+                  {task.questions.map((question, index) => {
+                    const earned = questionScore(question, submission);
+                    return (
+                      <div className="submitted-answer" key={question.id}>
+                        <div className="submitted-answer-heading">
+                          <strong>{index + 1}. {question.prompt}</strong>
+                          <span>{earned}/{question.points} points</span>
+                        </div>
+                        <div className="muted">Your answer</div>
+                        <div className="answer-value">{submission.answers[question.id] || "No answer recorded"}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </details>
+            );
           }) : <div className="empty">No submissions yet.</div>}
         </section>
       </main>
@@ -920,11 +972,13 @@ function maxPoints(task: Task) {
 }
 
 function autoScore(task: Task, submission: Submission) {
-  return task.questions.reduce((score, question) => {
-    if (question.type === "multiple" && submission.answers[question.id] === question.correctAnswer) return score + Number(question.points || 1);
-    if (question.type === "short") return score + Number(submission.manual_scores?.[question.id] || 0);
-    return score;
-  }, 0);
+  return task.questions.reduce((score, question) => score + questionScore(question, submission), 0);
+}
+
+function questionScore(question: Question, submission: Submission) {
+  if (question.type === "multiple" && submission.answers[question.id] === question.correctAnswer) return Number(question.points || 1);
+  if (question.type === "short") return Number(submission.manual_scores?.[question.id] || 0);
+  return 0;
 }
 
 function formatDate(value: string) {
