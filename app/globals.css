@@ -63,26 +63,20 @@ button:disabled {
   min-width: 0;
 }
 
-.mark {
-  align-items: center;
-  background: linear-gradient(135deg, var(--accent), var(--accent-dark));
-  border-radius: 8px;
-  box-shadow: 0 0 28px rgba(67, 185, 255, 0.34);
-  color: white;
-  display: inline-flex;
-  font-weight: 800;
-  height: 38px;
-  justify-content: center;
-  width: 38px;
-}
-
-.mark-button {
-  flex: 0 0 auto;
+.brand-home-button {
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   padding: 0;
+  text-align: left;
 }
 
-.mark-button:hover,
-.mark-button:focus-visible {
+.brand-home-button:hover,
+.brand-home-button:focus-visible {
   box-shadow:
     0 0 0 3px rgba(67, 185, 255, 0.2),
     0 0 28px rgba(67, 185, 255, 0.44);
@@ -111,6 +105,29 @@ button:disabled {
   font-size: 1.05rem;
   line-height: 1.1;
   margin: 0;
+}
+
+.logo-opening {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.02em;
+  white-space: nowrap;
+}
+
+.logo-opening-mark {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 14px rgba(67, 185, 255, 0.42));
+  height: 0.92em;
+  object-fit: cover;
+  object-position: center;
+  transform: translateY(0.03em);
+  width: 0.92em;
+}
+
+.logo-opening-compact .logo-opening-mark {
+  height: 1.18em;
+  width: 1.18em;
 }
 
 .brand span,
@@ -559,6 +576,18 @@ th {
   .topbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .brand-home-button {
+    width: 100%;
+  }
+
+  .brand h1 {
+    font-size: 0.98rem;
+  }
+
+  .hero .logo-opening {
+    white-space: normal;
   }
 
   .submission-summary,
