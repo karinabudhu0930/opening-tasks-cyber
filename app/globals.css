@@ -219,12 +219,12 @@ button:disabled {
 }
 
 .auth-copy-panel .hero-title {
-  align-items: center;
+  align-items: start;
   display: grid;
   gap: clamp(18px, 2.2vw, 34px);
   grid-template-columns: auto minmax(0, 1fr);
   justify-content: center;
-  max-width: 980px;
+  max-width: 1120px;
   width: fit-content;
 }
 
@@ -234,8 +234,9 @@ button:disabled {
 }
 
 .auth-copy-panel .hero-logo {
-  height: clamp(170px, 17vw, 240px);
-  width: clamp(170px, 17vw, 240px);
+  height: clamp(260px, 26vw, 390px);
+  margin-top: clamp(4px, 1vw, 18px);
+  width: clamp(260px, 26vw, 390px);
 }
 
 .auth-copy-panel h2 {
