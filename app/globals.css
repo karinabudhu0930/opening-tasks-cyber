@@ -64,12 +64,12 @@ button:disabled {
 }
 
 .brand-home-button {
-  align-items: flex-start;
+  align-items: center;
   background: transparent;
   border: 0;
   color: inherit;
   display: flex;
-  flex-direction: column;
+  gap: 14px;
   min-width: 0;
   padding: 0;
   text-align: left;
@@ -107,27 +107,30 @@ button:disabled {
   margin: 0;
 }
 
-.logo-opening {
-  align-items: center;
-  display: inline-flex;
-  gap: 0.02em;
-  white-space: nowrap;
-}
-
-.logo-opening-mark {
+.brand-logo {
   aspect-ratio: 1;
   border-radius: 50%;
-  filter: drop-shadow(0 0 14px rgba(67, 185, 255, 0.42));
-  height: 0.92em;
+  filter: drop-shadow(0 0 18px rgba(67, 185, 255, 0.45));
+  flex: 0 0 auto;
+  height: 54px;
   object-fit: cover;
   object-position: center;
-  transform: translateY(0.03em);
-  width: 0.92em;
+  width: 54px;
 }
 
-.logo-opening-compact .logo-opening-mark {
-  height: 1.18em;
-  width: 1.18em;
+.brand-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.brand-copy h1 {
+  color: white;
+}
+
+.brand-copy > span {
+  color: var(--muted);
 }
 
 .brand span,
@@ -153,12 +156,38 @@ button:disabled {
   padding: clamp(28px, 6vw, 64px);
 }
 
+.hero-title {
+  align-items: center;
+  display: flex;
+  gap: clamp(16px, 3vw, 28px);
+  max-width: 1040px;
+}
+
+.hero-logo {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 30px rgba(67, 185, 255, 0.5));
+  flex: 0 0 auto;
+  height: clamp(86px, 13vw, 150px);
+  object-fit: cover;
+  object-position: center;
+  width: clamp(86px, 13vw, 150px);
+}
+
 .hero h2 {
   font-size: clamp(2.1rem, 5vw, 4.9rem);
   letter-spacing: 0;
   line-height: 0.94;
   margin: 0;
   max-width: 920px;
+}
+
+.hero-title span {
+  color: rgba(222, 241, 255, 0.88);
+  display: block;
+  font-size: clamp(1.15rem, 2vw, 1.8rem);
+  font-weight: 700;
+  margin-top: 10px;
 }
 
 .hero p {
@@ -586,8 +615,14 @@ th {
     font-size: 0.98rem;
   }
 
-  .hero .logo-opening {
-    white-space: normal;
+  .brand-logo {
+    height: 46px;
+    width: 46px;
+  }
+
+  .hero-title {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .submission-summary,

@@ -831,8 +831,11 @@ function renderFrame(children: ReactNode, profile: Profile | null, signOut: () =
       <header className="topbar">
         <div className="brand">
           <button className="brand-home-button" type="button" onClick={goHome} title="Home">
-            <h1><LogoOpeningText compact /> - Cyber Security</h1>
-            <span>Ms. Budhu</span>
+            <img className="brand-logo" src="/soc-logo.png" alt="SOC logo" />
+            <span className="brand-copy">
+              <h1>Opening Tasks - Cyber Security</h1>
+              <span>Ms. Budhu</span>
+            </span>
           </button>
         </div>
         <div className="top-actions">
@@ -853,7 +856,13 @@ function renderLogin(
   return (
     <>
       <section className="hero">
-        <h2><LogoOpeningText /> - Cyber Security Ms. Budhu</h2>
+        <div className="hero-title">
+          <img className="hero-logo" src="/soc-logo.png" alt="SOC logo" />
+          <div>
+            <h2>Opening Tasks - Cyber Security</h2>
+            <span>Ms. Budhu</span>
+          </div>
+        </div>
         <p>On the respective days please submit and complete the opening task assignment as posted. Your cumulative grade will be a reflection at the end of your marking period of your opening task submissions under &quot;Formative Assignments - Opening Tasks&quot; within your gradebook.</p>
       </section>
       <main className="main">
@@ -879,15 +888,6 @@ function renderLogin(
         </div>
       </main>
     </>
-  );
-}
-
-function LogoOpeningText({ compact = false }: { compact?: boolean }) {
-  return (
-    <span className={compact ? "logo-opening logo-opening-compact" : "logo-opening"}>
-      <img className="logo-opening-mark" src="/soc-logo.png" alt="O" />
-      <span>pening Tasks</span>
-    </span>
   );
 }
 
