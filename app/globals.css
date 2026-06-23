@@ -222,16 +222,16 @@ button:disabled {
 .auth-copy-panel .hero-title {
   align-items: center;
   display: grid;
-  gap: clamp(30px, 5vw, 74px);
+  gap: clamp(18px, 2.2vw, 34px);
   grid-template-columns: auto minmax(0, 1fr);
   justify-content: center;
-  max-width: 1080px;
-  width: 100%;
+  max-width: 980px;
+  width: fit-content;
 }
 
 .auth-copy-panel .hero-logo {
-  height: clamp(160px, 18vw, 250px);
-  width: clamp(160px, 18vw, 250px);
+  height: clamp(170px, 17vw, 240px);
+  width: clamp(170px, 17vw, 240px);
 }
 
 .auth-copy-panel h2 {
