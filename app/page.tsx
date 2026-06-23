@@ -80,6 +80,7 @@ export default function Home() {
   const [view, setView] = useState<"tasks" | "students" | "reports">("tasks");
   const [selectedReportTaskId, setSelectedReportTaskId] = useState("all");
   const [loading, setLoading] = useState(true);
+  const [authView, setAuthView] = useState<"login" | "register">("login");
   const [creatingClass, setCreatingClass] = useState(false);
   const [deletingClass, setDeletingClass] = useState(false);
   const [publishingTask, setPublishingTask] = useState(false);
@@ -502,7 +503,18 @@ export default function Home() {
   };
 
   if (loading) return renderFrame(<main className="main"><section className="panel">Loading...</section></main>, profile, signOut, goHome);
-  if (!user) return renderFrame(renderLogin(signIn, register, message), profile, signOut, goHome);
+  if (!user) {
+    if (authView === "register") {
+      return renderRegister(register, message, () => {
+        setMessage("");
+        setAuthView("login");
+      });
+    }
+    return renderLogin(signIn, message, () => {
+      setMessage("");
+      setAuthView("register");
+    });
+  }
   if (!profile) return renderFrame(renderCompleteProfile(user.email ?? "", completeProfile, message), null, signOut, goHome);
   if (profile.role === "student") return renderFrame(renderStudent(profile), profile, signOut, goHome);
   return renderFrame(renderInstructor(), profile, signOut, goHome);
@@ -840,10 +852,12 @@ function renderFrame(children: ReactNode, profile: Profile | null, signOut: () =
             </span>
           </button>
         </div>
-        <div className="top-actions">
-          {profile && <span className="muted">{profile.full_name} · {profile.role}</span>}
-          <button className="btn secondary sign-out-btn" onClick={signOut}>Sign out</button>
-        </div>
+        {profile && (
+          <div className="top-actions">
+            <span className="muted">{profile.full_name} · {profile.role}</span>
+            <button className="btn secondary sign-out-btn" onClick={signOut}>Sign out</button>
+          </div>
+        )}
       </header>
       {children}
     </>
@@ -852,12 +866,12 @@ function renderFrame(children: ReactNode, profile: Profile | null, signOut: () =
 
 function renderLogin(
   signIn: (event: FormEvent<HTMLFormElement>) => void,
-  register: (event: FormEvent<HTMLFormElement>) => void,
-  message: string
+  message: string,
+  showRegister: () => void
 ) {
   return (
-    <>
-      <section className="hero">
+    <main className="auth-page">
+      <section className="auth-copy-panel">
         <div className="hero-title">
           <img className="hero-logo" src={`${BASE_PATH}/soc-logo.png`} alt="SOC logo" />
           <div>
@@ -867,29 +881,67 @@ function renderLogin(
         </div>
         <p>On the respective days please submit and complete the opening task assignment as posted. Your cumulative grade will be a reflection at the end of your marking period of your opening task submissions under &quot;Formative Assignments - Opening Tasks&quot; within your gradebook.</p>
       </section>
-      <main className="main">
-        {message && <div className="alert">{message}</div>}
-        <div className="login-grid">
-          <form className="card stack auth-card sign-in-card" onSubmit={signIn}>
-            <h3>Sign in</h3>
-            <label className="field"><span>Email</span><input className="input" name="email" type="email" required /></label>
-            <label className="field"><span>Password</span><input className="input" name="password" type="password" required /></label>
+
+      <section className="auth-form-panel">
+        <div className="auth-card-shell">
+          <div className="auth-heading">
+            <h1>Welcome back</h1>
+            <p>Please enter your details</p>
+          </div>
+
+          {message && <div className="alert">{message}</div>}
+          <form className="auth-form" onSubmit={signIn}>
+            <label className="field"><span>Email address</span><input className="input" name="email" type="email" autoComplete="email" required /></label>
+            <label className="field"><span>Password</span><input className="input" name="password" type="password" autoComplete="current-password" required /></label>
             <button className="btn" type="submit">Sign in</button>
           </form>
-          <form className="card stack auth-card create-account-card" onSubmit={register}>
-            <h3>Create account</h3>
-            <div className="grid">
-              <label className="field"><span>Name</span><input className="input" name="name" required /></label>
-              <label className="field"><span>Role</span><select name="role"><option value="student">Student</option><option value="instructor">Instructor</option></select></label>
-            </div>
-            <label className="field"><span>Email</span><input className="input" name="email" type="email" required /></label>
-            <label className="field"><span>Password</span><input className="input" name="password" type="password" minLength={6} required /></label>
+
+          <p className="auth-switch">Don&apos;t have an account? <button type="button" onClick={showRegister}>Sign up</button></p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function renderRegister(
+  register: (event: FormEvent<HTMLFormElement>) => void,
+  message: string,
+  showLogin: () => void
+) {
+  return (
+    <main className="auth-page register-page">
+      <section className="auth-copy-panel">
+        <div className="hero-title">
+          <img className="hero-logo" src={`${BASE_PATH}/soc-logo.png`} alt="SOC logo" />
+          <div>
+            <h2>Create your account</h2>
+            <span>Opening Tasks - Cyber Security</span>
+          </div>
+        </div>
+        <p>Students can create an account with their class join code. Instructors can create an instructor account and set up classes after signing in.</p>
+      </section>
+
+      <section className="auth-form-panel">
+        <div className="auth-card-shell">
+          <div className="auth-heading">
+            <h1>Sign up</h1>
+            <p>Create your classroom account</p>
+          </div>
+
+          {message && <div className="alert">{message}</div>}
+          <form className="auth-form" onSubmit={register}>
+            <label className="field"><span>Name</span><input className="input" name="name" autoComplete="name" required /></label>
+            <label className="field"><span>Role</span><select name="role"><option value="student">Student</option><option value="instructor">Instructor</option></select></label>
+            <label className="field"><span>Email address</span><input className="input" name="email" type="email" autoComplete="email" required /></label>
+            <label className="field"><span>Password</span><input className="input" name="password" type="password" autoComplete="new-password" minLength={6} required /></label>
             <label className="field"><span>Class join code</span><input className="input" name="joinCode" placeholder="Students enter teacher code, e.g. CYBR42" /></label>
             <button className="btn" type="submit">Create and sign in</button>
           </form>
+
+          <p className="auth-switch">Already have an account? <button type="button" onClick={showLogin}>Sign in</button></p>
         </div>
-      </main>
-    </>
+      </section>
+    </main>
   );
 }
 

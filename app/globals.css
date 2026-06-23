@@ -197,6 +197,111 @@ button:disabled {
   max-width: 760px;
 }
 
+.auth-page {
+  align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(360px, 0.82fr);
+  min-height: 100vh;
+}
+
+.auth-copy-panel {
+  align-content: center;
+  background:
+    linear-gradient(105deg, rgba(4, 9, 24, 0.96), rgba(18, 38, 87, 0.8) 54%, rgba(88, 52, 178, 0.48)),
+    url("https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1800&q=85");
+  background-position: center;
+  background-size: cover;
+  border-right: 1px solid rgba(117, 180, 255, 0.22);
+  color: white;
+  display: grid;
+  gap: 22px;
+  padding: clamp(32px, 6vw, 72px);
+}
+
+.auth-copy-panel .hero-title {
+  align-items: center;
+}
+
+.auth-copy-panel h2 {
+  font-size: clamp(2.6rem, 6vw, 5.6rem);
+  letter-spacing: -0.04em;
+  line-height: 0.93;
+  margin: 0;
+  max-width: 920px;
+}
+
+.auth-copy-panel p {
+  color: rgba(222, 241, 255, 0.9);
+  font-size: 1.08rem;
+  line-height: 1.6;
+  max-width: 760px;
+}
+
+.auth-form-panel {
+  align-items: center;
+  background:
+    radial-gradient(circle at top right, rgba(67, 185, 255, 0.12), transparent 22rem),
+    rgba(4, 8, 21, 0.72);
+  display: flex;
+  justify-content: center;
+  padding: clamp(28px, 5vw, 58px);
+}
+
+.auth-card-shell {
+  display: grid;
+  gap: 18px;
+  max-width: 430px;
+  width: 100%;
+}
+
+.auth-heading {
+  display: grid;
+  gap: 6px;
+}
+
+.auth-heading h1 {
+  color: white;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1;
+  margin: 0;
+}
+
+.auth-heading p,
+.auth-switch {
+  color: var(--muted);
+  margin: 0;
+}
+
+.auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.auth-form .btn {
+  margin-top: 4px;
+  width: 100%;
+}
+
+.auth-form .field > span {
+  color: #dbe9ff;
+  font-size: 0.88rem;
+  font-weight: 750;
+}
+
+.auth-switch {
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.auth-switch button {
+  background: transparent;
+  color: #7ccfff;
+  font-weight: 800;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 .login-grid,
 .grid {
   display: grid;
@@ -626,6 +731,24 @@ th {
 }
 
 @media (max-width: 860px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-copy-panel {
+    border-bottom: 1px solid rgba(117, 180, 255, 0.22);
+    border-right: 0;
+    min-height: 42vh;
+  }
+
+  .auth-form-panel {
+    align-items: flex-start;
+  }
+
+  .auth-card-shell {
+    max-width: none;
+  }
+
   .login-grid,
   .layout,
   .grid,
