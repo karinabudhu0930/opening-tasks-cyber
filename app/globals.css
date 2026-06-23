@@ -214,12 +214,24 @@ button:disabled {
   border-right: 1px solid rgba(117, 180, 255, 0.22);
   color: white;
   display: grid;
-  gap: 22px;
+  gap: clamp(32px, 4.5vw, 58px);
+  justify-items: center;
   padding: clamp(32px, 6vw, 72px);
 }
 
 .auth-copy-panel .hero-title {
   align-items: center;
+  display: grid;
+  gap: clamp(30px, 5vw, 74px);
+  grid-template-columns: auto minmax(0, 1fr);
+  justify-content: center;
+  max-width: 1080px;
+  width: 100%;
+}
+
+.auth-copy-panel .hero-logo {
+  height: clamp(160px, 18vw, 250px);
+  width: clamp(160px, 18vw, 250px);
 }
 
 .auth-copy-panel h2 {
@@ -230,11 +242,32 @@ button:disabled {
   max-width: 920px;
 }
 
+.auth-copy-panel h2 > span {
+  color: white;
+  display: block;
+  font-size: inherit;
+  font-weight: inherit;
+  margin: 0;
+}
+
+.auth-copy-panel h2 > span:last-child {
+  color: rgba(222, 241, 255, 0.88);
+}
+
+.auth-copy-panel .hero-title > div > span {
+  color: rgba(222, 241, 255, 0.88);
+  font-size: clamp(1.45rem, 2.5vw, 2.25rem);
+  font-weight: 800;
+  margin-top: clamp(14px, 2vw, 22px);
+}
+
 .auth-copy-panel p {
   color: rgba(222, 241, 255, 0.9);
-  font-size: 1.08rem;
-  line-height: 1.6;
-  max-width: 760px;
+  font-size: clamp(1.15rem, 1.7vw, 1.45rem);
+  font-weight: 650;
+  line-height: 1.55;
+  max-width: 1080px;
+  width: 100%;
 }
 
 .auth-form-panel {
@@ -739,6 +772,22 @@ th {
     border-bottom: 1px solid rgba(117, 180, 255, 0.22);
     border-right: 0;
     min-height: 42vh;
+  }
+
+  .auth-copy-panel .hero-title {
+    gap: 20px;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .auth-copy-panel .hero-logo {
+    height: clamp(132px, 34vw, 190px);
+    width: clamp(132px, 34vw, 190px);
+  }
+
+  .auth-copy-panel p {
+    text-align: center;
   }
 
   .auth-form-panel {

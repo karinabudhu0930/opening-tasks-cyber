@@ -875,7 +875,7 @@ function renderLogin(
         <div className="hero-title">
           <img className="hero-logo" src={`${BASE_PATH}/soc-logo.png`} alt="SOC logo" />
           <div>
-            <h2>Opening Tasks - Cyber Security</h2>
+            <h2><span>Opening Tasks -</span><span>Cyber Security</span></h2>
             <span>Ms. Budhu</span>
           </div>
         </div>
