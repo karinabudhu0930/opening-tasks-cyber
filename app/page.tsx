@@ -868,13 +868,13 @@ function renderLogin(
       <main className="main">
         {message && <div className="alert">{message}</div>}
         <div className="login-grid">
-          <form className="card stack" onSubmit={signIn}>
+          <form className="card stack auth-card sign-in-card" onSubmit={signIn}>
             <h3>Sign in</h3>
             <label className="field"><span>Email</span><input className="input" name="email" type="email" required /></label>
             <label className="field"><span>Password</span><input className="input" name="password" type="password" required /></label>
             <button className="btn" type="submit">Sign in</button>
           </form>
-          <form className="card stack" onSubmit={register}>
+          <form className="card stack auth-card create-account-card" onSubmit={register}>
             <h3>Create account</h3>
             <div className="grid">
               <label className="field"><span>Name</span><input className="input" name="name" required /></label>

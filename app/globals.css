@@ -205,7 +205,38 @@ button:disabled {
 }
 
 .login-grid {
+  align-items: stretch;
   margin-top: 22px;
+}
+
+.auth-card {
+  align-content: start;
+  gap: 12px;
+  padding: 20px 16px 16px;
+}
+
+.auth-card h3 {
+  margin: 0 0 10px;
+}
+
+.auth-card .grid {
+  gap: 12px;
+}
+
+.auth-card .field {
+  gap: 6px;
+}
+
+.auth-card .btn {
+  margin-top: 0;
+}
+
+.sign-in-card {
+  grid-template-rows: auto auto auto 1fr auto;
+}
+
+.sign-in-card .btn {
+  align-self: end;
 }
 
 .card,
