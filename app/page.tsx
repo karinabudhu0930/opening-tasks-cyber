@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 import { isSupabaseConfigured, supabase } from "@/lib/supabaseClient";
 
+const BASE_PATH = "/opening-tasks";
+
 type Role = "student" | "instructor";
 
 type Profile = {
@@ -831,7 +833,7 @@ function renderFrame(children: ReactNode, profile: Profile | null, signOut: () =
       <header className="topbar">
         <div className="brand">
           <button className="brand-home-button" type="button" onClick={goHome} title="Home">
-            <img className="brand-logo" src="/soc-logo.png" alt="SOC logo" />
+            <img className="brand-logo" src={`${BASE_PATH}/soc-logo.png`} alt="SOC logo" />
             <span className="brand-copy">
               <h1>Opening Tasks - Cyber Security</h1>
               <span>Ms. Budhu</span>
@@ -857,7 +859,7 @@ function renderLogin(
     <>
       <section className="hero">
         <div className="hero-title">
-          <img className="hero-logo" src="/soc-logo.png" alt="SOC logo" />
+          <img className="hero-logo" src={`${BASE_PATH}/soc-logo.png`} alt="SOC logo" />
           <div>
             <h2>Opening Tasks - Cyber Security</h2>
             <span>Ms. Budhu</span>
