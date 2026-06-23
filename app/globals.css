@@ -214,7 +214,6 @@ button:disabled {
   border-right: 1px solid rgba(117, 180, 255, 0.22);
   color: white;
   display: grid;
-  gap: clamp(32px, 4.5vw, 58px);
   justify-items: center;
   padding: clamp(32px, 6vw, 72px);
 }
@@ -227,6 +226,11 @@ button:disabled {
   justify-content: center;
   max-width: 980px;
   width: fit-content;
+}
+
+.auth-copy-panel .hero-copy {
+  display: grid;
+  gap: clamp(14px, 2vw, 24px);
 }
 
 .auth-copy-panel .hero-logo {
@@ -258,16 +262,16 @@ button:disabled {
   color: rgba(222, 241, 255, 0.88);
   font-size: clamp(1.45rem, 2.5vw, 2.25rem);
   font-weight: 800;
-  margin-top: clamp(14px, 2vw, 22px);
+  margin: 0;
 }
 
-.auth-copy-panel p {
+.auth-copy-panel .hero-copy p {
   color: rgba(222, 241, 255, 0.9);
   font-size: clamp(1.15rem, 1.7vw, 1.45rem);
   font-weight: 650;
   line-height: 1.55;
-  max-width: 1080px;
-  width: 100%;
+  margin: clamp(20px, 3vw, 36px) 0 0;
+  max-width: 760px;
 }
 
 .auth-form-panel {
@@ -786,7 +790,7 @@ th {
     width: clamp(132px, 34vw, 190px);
   }
 
-  .auth-copy-panel p {
+  .auth-copy-panel .hero-copy p {
     text-align: center;
   }
 

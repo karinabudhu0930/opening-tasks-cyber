@@ -874,12 +874,12 @@ function renderLogin(
       <section className="auth-copy-panel">
         <div className="hero-title">
           <img className="hero-logo" src={`${BASE_PATH}/soc-logo.png`} alt="SOC logo" />
-          <div>
+          <div className="hero-copy">
             <h2><span>Opening Tasks -</span><span>Cyber Security</span></h2>
             <span>Ms. Budhu</span>
+            <p>On the respective days please submit and complete the opening task assignment as posted. Your cumulative grade will be a reflection at the end of your marking period of your opening task submissions under &quot;Formative Assignments - Opening Tasks&quot; within your gradebook.</p>
           </div>
         </div>
-        <p>On the respective days please submit and complete the opening task assignment as posted. Your cumulative grade will be a reflection at the end of your marking period of your opening task submissions under &quot;Formative Assignments - Opening Tasks&quot; within your gradebook.</p>
       </section>
 
       <section className="auth-form-panel">
@@ -913,12 +913,12 @@ function renderRegister(
       <section className="auth-copy-panel">
         <div className="hero-title">
           <img className="hero-logo" src={`${BASE_PATH}/soc-logo.png`} alt="SOC logo" />
-          <div>
+          <div className="hero-copy">
             <h2>Create your account</h2>
             <span>Opening Tasks - Cyber Security</span>
+            <p>Students can create an account with their class join code. Instructors can create an instructor account and set up classes after signing in.</p>
           </div>
         </div>
-        <p>Students can create an account with their class join code. Instructors can create an instructor account and set up classes after signing in.</p>
       </section>
 
       <section className="auth-form-panel">
