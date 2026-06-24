@@ -82,6 +82,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [authView, setAuthView] = useState<"login" | "register">("login");
   const [creatingClass, setCreatingClass] = useState(false);
+  const [renamingClass, setRenamingClass] = useState(false);
   const [deletingClass, setDeletingClass] = useState(false);
   const [publishingTask, setPublishingTask] = useState(false);
   const [message, setMessage] = useState("");
@@ -371,6 +372,32 @@ export default function Home() {
     setDeletingClass(false);
   }
 
+  async function renameSelectedClass(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!profile || !selectedClass) return;
+    const form = new FormData(event.currentTarget);
+    const name = String(form.get("name")).trim();
+    if (!name) {
+      setMessage("Please enter a class name.");
+      return;
+    }
+    if (name === selectedClass.name) {
+      setMessage("That is already the class name.");
+      return;
+    }
+
+    setRenamingClass(true);
+    const { data, error } = await supabase.from("classes").update({ name }).eq("id", selectedClass.id).select("*").single();
+    if (error) setMessage(error.message);
+    else if (data) {
+      const updatedClass = data as ClassRow;
+      setClasses(classes.map((klass) => klass.id === updatedClass.id ? updatedClass : klass));
+      setMessage(`Class renamed to ${updatedClass.name}.`);
+      await loadData(profile.id);
+    }
+    setRenamingClass(false);
+  }
+
   async function addStudent(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedClass || !profile) return;
@@ -489,8 +516,10 @@ export default function Home() {
     if (!profile) return;
     const submission = submissions.find((item) => item.id === submissionId);
     if (!submission) return;
-    const score = Number(new FormData(event.currentTarget).get("score") ?? 0);
-    const manual_scores = { ...submission.manual_scores, [questionId]: score };
+    const rawScore = String(new FormData(event.currentTarget).get("score") ?? "").trim();
+    const manual_scores = { ...(submission.manual_scores ?? {}) };
+    if (rawScore === "") delete manual_scores[questionId];
+    else manual_scores[questionId] = Number(rawScore);
     const { error } = await supabase.from("submissions").update({ manual_scores }).eq("id", submissionId);
     if (error) setMessage(error.message);
     else await loadData(profile.id);
@@ -551,6 +580,13 @@ export default function Home() {
           <details className="class-tools">
             <summary>New class</summary>
             <ClassForm onSubmit={createClass} creating={creatingClass} />
+          </details>
+          <details className="class-tools">
+            <summary>Rename class</summary>
+            <form className="stack" onSubmit={renameSelectedClass}>
+              <label className="field"><span>Class name</span><input className="input" name="name" defaultValue={selectedClass.name} required /></label>
+              <button className="btn secondary" type="submit" disabled={renamingClass}>{renamingClass ? "Renaming..." : "Rename class"}</button>
+            </form>
           </details>
           <button className="btn danger" type="button" onClick={deleteSelectedClass} disabled={deletingClass}>
             {deletingClass ? "Deleting..." : "Delete class"}
@@ -639,7 +675,7 @@ export default function Home() {
     const submittedCount = reportTasks.reduce((sum, task) => sum + roster.filter((student) => getSubmission(task.id, student.id)).length, 0);
     const percents = reportTasks.flatMap((task) => roster.map((student) => {
       const submission = getSubmission(task.id, student.id);
-      return submission ? (autoScore(task, submission) / maxPoints(task)) * 100 : null;
+      return submission && !hasPendingReview(task, submission) ? (autoScore(task, submission) / maxPoints(task)) * 100 : null;
     })).filter((item): item is number => item !== null);
     const avg = percents.length ? Math.round(percents.reduce((a, b) => a + b, 0) / percents.length) : 0;
     const visibleTask = selectedReportTaskId === "all" ? classTasks[classTasks.length - 1] : reportTasks[0];
@@ -686,11 +722,11 @@ export default function Home() {
                   <tr key={student.id}>
                     <td>{student.full_name}</td>
                     <td>Submitted {formatDate(submission.submitted_at)}</td>
-                    <td>{autoScore(task, submission)}/{maxPoints(task)}</td>
+                    <td>{formatScore(task, submission)}</td>
                     <td>{task.questions.map((question) => <div className="answer-block" key={question.id}><b>{question.prompt}</b><br />{submission.answers[question.id] || ""}</div>)}</td>
                     <td>{task.questions.filter((question) => question.type === "short").map((question) => (
                       <form className="btn-row" key={question.id} onSubmit={(event) => saveGrade(event, submission.id, question.id)}>
-                        <input className="input" name="score" type="number" min="0" max={question.points} defaultValue={submission.manual_scores?.[question.id] ?? 0} />
+                        <input className="input" name="score" type="number" min="0" max={question.points} placeholder="Needs review" defaultValue={questionNeedsReview(question, submission) ? "" : submission.manual_scores?.[question.id]} />
                         <button className="btn secondary" type="submit">Save</button>
                       </form>
                     ))}</td>
@@ -752,9 +788,7 @@ export default function Home() {
             if (!submission) return null;
             const score = autoScore(task, submission);
             const total = maxPoints(task);
-            const hasPendingGrades = task.questions.some((question) => (
-              question.type === "short" && !Object.prototype.hasOwnProperty.call(submission.manual_scores ?? {}, question.id)
-            ));
+            const hasPendingGrades = hasPendingReview(task, submission);
             return (
               <details className="question submission-card" key={task.id}>
                 <summary className="submission-summary">
@@ -763,8 +797,17 @@ export default function Home() {
                     <span className="muted submission-date">Submitted {formatDate(submission.submitted_at)}</span>
                   </span>
                   <span className="submission-score">
-                    <strong>{score}/{total}</strong>
-                    <span>{total ? Math.round((score / total) * 100) : 0}%</span>
+                    {hasPendingGrades ? (
+                      <>
+                        <strong>Needs review</strong>
+                        <span>{score}/{total} graded so far</span>
+                      </>
+                    ) : (
+                      <>
+                        <strong>{score}/{total}</strong>
+                        <span>{total ? Math.round((score / total) * 100) : 0}%</span>
+                      </>
+                    )}
                   </span>
                 </summary>
                 <div className="submission-details stack">
@@ -775,7 +818,7 @@ export default function Home() {
                       <div className="submitted-answer" key={question.id}>
                         <div className="submitted-answer-heading">
                           <strong>{index + 1}. {question.prompt}</strong>
-                          <span>{earned}/{question.points} points</span>
+                          <span>{questionNeedsReview(question, submission) ? "Needs review" : `${earned}/${question.points} points`}</span>
                         </div>
                         <div className="muted">Your answer</div>
                         <div className="answer-value">{submission.answers[question.id] || "No answer recorded"}</div>
@@ -822,7 +865,7 @@ export default function Home() {
           student.email,
           submission ? submission.submitted_at : "",
           submission ? "Submitted" : "Missing",
-          String(submission ? autoScore(task, submission) : 0),
+          String(submission ? (hasPendingReview(task, submission) ? "Needs review" : autoScore(task, submission)) : 0),
           String(maxPoints(task))
         ]);
       });
@@ -1042,8 +1085,22 @@ function autoScore(task: Task, submission: Submission) {
 
 function questionScore(question: Question, submission: Submission) {
   if (question.type === "multiple" && submission.answers[question.id] === question.correctAnswer) return Number(question.points || 1);
-  if (question.type === "short") return Number(submission.manual_scores?.[question.id] || 0);
+  if (question.type === "short" && !questionNeedsReview(question, submission)) return Number(submission.manual_scores?.[question.id] ?? 0);
   return 0;
+}
+
+function questionNeedsReview(question: Question, submission: Submission) {
+  return question.type === "short" && !Object.prototype.hasOwnProperty.call(submission.manual_scores ?? {}, question.id);
+}
+
+function hasPendingReview(task: Task, submission: Submission) {
+  return task.questions.some((question) => questionNeedsReview(question, submission));
+}
+
+function formatScore(task: Task, submission: Submission) {
+  const score = autoScore(task, submission);
+  const total = maxPoints(task);
+  return hasPendingReview(task, submission) ? `${score}/${total} · Needs review` : `${score}/${total}`;
 }
 
 function formatDate(value: string) {
